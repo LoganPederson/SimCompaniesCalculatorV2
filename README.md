@@ -1,1 +1,2 @@
-# SimCompaniesCalculator
+# SimCompaniesCalculatorV2
+This create-react-app project is intended for players of the game Sim Companies to leverage for increased efficiency in gameplay decision making. Input your production buildings name, it's level, your production modifier % increase from leveling, your administration overhead at the moment, and finally select the economy phase from the dropdown. Click the populate table button and behold the power of programming!
