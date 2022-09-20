@@ -88,7 +88,6 @@ def calculateProfitPerHourPerItem(buildingName:str, buildingLevel:int, productio
                     print("Production Cost of Sourcing AND Wages AND Admin Overhead Percentage: "+str(productionCosts))
                     print("Items Produced An Hour: "+str(item.producedAnHour*buildingLevel))
                     profitPerHour = (getLowestMarketPrice(item.name)*(item.producedAnHour*buildingLevel)) - productionCosts
-                    profitDict[item.name]=profitPerHour
                     profitDict2[id] = {'itemName':item.name, 'profitPerHour':profitPerHour}
                     id = id + 1
                     print("profitDict2 "+str(profitDict2))
