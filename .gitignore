@@ -5,7 +5,7 @@
 /Backend/local_settings.py
 
 # Frontend
-/Frontend/node_modules
+/Frontend/node_modules/
 
 # Misc
 /Include
@@ -14,6 +14,6 @@
 /install_nvm.sh
 /pyvenv.cfg
 /reactCreate.py
-
+/node_modules
 # SSH
 /sshLogin.pem
