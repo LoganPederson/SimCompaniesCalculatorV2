@@ -45,7 +45,7 @@ const {
 const populateTable = async () => {
     try{
         let encodedName = encodeURI(buildingName)
-        let targetURI = `http://localhost:8000/api/calculateProfitPerHourOf{}?buildingName=${encodedName}&buildingLevel=${buildingLevel}&productionModifierPercentage=${productionModifierPercentage}&administrationCostPercentage=${adminCostPercentage}&phase=${dropDownValue}`
+        let targetURI = `3.132.177.230/api/calculateProfitPerHourOf{}?buildingName=${encodedName}&buildingLevel=${buildingLevel}&productionModifierPercentage=${productionModifierPercentage}&administrationCostPercentage=${adminCostPercentage}&phase=${dropDownValue}`
         let res = await axios.get(targetURI);
         let arr = res.data;
         console.log('arr = '+arr)
