@@ -1,0 +1,16 @@
+[
+  {
+    "1": {
+      "itemName": "Energy research",
+      "profitPerHour": 821.6746356364301
+    },
+    "2": {
+      "itemName": "Mining research",
+      "profitPerHour": 742.7240922619478
+    },
+    "3": {
+      "itemName": "Electronics research",
+      "profitPerHour": 864.3855853308221
+    }
+  }
+]

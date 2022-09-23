@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/simcompaniescalculatorv2/static/css/main.b9fa35cc.chunk.css",
+    "main.js": "/simcompaniescalculatorv2/static/js/main.50be0709.chunk.js",
+    "main.js.map": "/simcompaniescalculatorv2/static/js/main.50be0709.chunk.js.map",
+    "runtime-main.js": "/simcompaniescalculatorv2/static/js/runtime-main.bab91153.js",
+    "runtime-main.js.map": "/simcompaniescalculatorv2/static/js/runtime-main.bab91153.js.map",
+    "static/js/2.d290c235.chunk.js": "/simcompaniescalculatorv2/static/js/2.d290c235.chunk.js",
+    "static/js/2.d290c235.chunk.js.map": "/simcompaniescalculatorv2/static/js/2.d290c235.chunk.js.map",
+    "static/js/3.d14b459e.chunk.js": "/simcompaniescalculatorv2/static/js/3.d14b459e.chunk.js",
+    "static/js/3.d14b459e.chunk.js.map": "/simcompaniescalculatorv2/static/js/3.d14b459e.chunk.js.map",
+    "index.html": "/simcompaniescalculatorv2/index.html",
+    "static/css/main.b9fa35cc.chunk.css.map": "/simcompaniescalculatorv2/static/css/main.b9fa35cc.chunk.css.map",
+    "static/js/2.d290c235.chunk.js.LICENSE.txt": "/simcompaniescalculatorv2/static/js/2.d290c235.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.bab91153.js",
+    "static/js/2.d290c235.chunk.js",
+    "static/css/main.b9fa35cc.chunk.css",
+    "static/js/main.50be0709.chunk.js"
+  ]
+}
