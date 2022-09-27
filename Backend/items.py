@@ -1,8 +1,8 @@
-from sqlalchemy import Column, String, Integer, Boolean, Float
+from sqlalchemy import Column, String, Integer, Boolean, Float, inspect
 from base import Base, Session, engine
 from buildings import Building
 import json, requests
-from time import sleep
+from time import sleep, time
 
 #- Item class for each resource with properties within
 class Item(Base): 
@@ -46,17 +46,20 @@ class Item(Base):
 
 
 
-#- generate database schema
-Base.metadata.create_all(engine)
+#- generate database schema ( I belive this is not needed and causing false positive in seeing if table exists)
+# Base.metadata.create_all(engine)
 #- create a new session
 session = Session()
-
+inspector = inspect(engine)
 #- GET request from API for specified resource db_letter
 def getResourceData(db_letter):
+    timeStart = time()
     url = "https://www.simcompanies.com/api/v4/en/0/encyclopedia/resources/0/{}/".format(db_letter)
-    print(url)
     response = requests.get(url)
     resourceData = json.loads(response.text)
+    print(url+" Response Time: "+str(time()-timeStart))
+    if(time()-timeStart > 1):
+        print("Long response time detected, possible rate limiting")
     return resourceData
 
 def getMarketData(db_letter):
@@ -67,123 +70,19 @@ def getMarketData(db_letter):
 
 #- loop through commodity list and get data from API
 def populateItemsTable():
+    if(inspector.has_table('Items')):
+        print("Table Items exists!")
+        Item.__table__.drop(engine)
+        session.commit()
+        Base.metadata.create_all(engine)
+        print("Items table dropped, session commited, then schema recreated")
+    else:
+        print("No table named Items found, creating Schema")
+        Base.metadata.create_all(engine)
+    
     i = 1
     while i <= 113: 
-        if(i <= 35):# 0 to 35
-            resourceData = getResourceData(i)
-            marketData = getMarketData(i)
-            name = resourceData["name"]
-            db_letter = resourceData["db_letter"]
-            transportation = resourceData["transportation"]
-            retailable = resourceData["retailable"]
-            research = resourceData["research"]
-            realmAvailable = resourceData["realmAvailable"]
-            producedAnHour = resourceData["producedAnHour"]
-            averageRetailPrice = resourceData["averageRetailPrice"]
-            marketSaturation = resourceData["marketSaturation"]
-            marketSaturationLabel = resourceData["marketSaturationLabel"]
-            retailModeling = resourceData["retailModeling"]
-            neededForString = ""
-            if "neededFor" in resourceData:
-                for item in resourceData["neededFor"]:
-                    if item["name"]:
-                        neededForString = neededForString + item["name"] + '-'
-            producedFromString = ""
-            if 'producedFrom' in resourceData:
-                # check if producedFrom list is empty
-                if len(resourceData["producedFrom"]) > 0:
-                    amountToPrint = len(resourceData["producedFrom"])
-                    x = 0
-                    for item in resourceData["producedFrom"]:
-                        if x < amountToPrint:
-                            producedFromString = producedFromString + resourceData["producedFrom"][x]["resource"]["name"] + "+"+str(resourceData["producedFrom"][x]["amount"])+"-"
-                            x = x + 1
-            producedAtString = ""
-            if 'producedAt' in resourceData:
-                producedAtString = producedAtString + resourceData["producedAt"]["name"]
-            neededFor = neededForString
-            producedFrom = producedFromString
-            producedAt = producedAtString
-            lowestMarketPrice = marketData[0]["price"]
-            newItem = Item(name, db_letter, transportation, retailable, research, realmAvailable, producedAnHour, averageRetailPrice, marketSaturation, marketSaturationLabel, retailModeling, neededFor, producedFrom, producedAt, lowestMarketPrice)
-            session.add(newItem)
-        if(i >= 40 and i <= 89): # 40 to 89
-            resourceData = getResourceData(i)
-            marketData = getMarketData(i)
-            name = resourceData["name"]
-            db_letter = resourceData["db_letter"]
-            transportation = resourceData["transportation"]
-            retailable = resourceData["retailable"]
-            research = resourceData["research"]
-            realmAvailable = resourceData["realmAvailable"]
-            producedAnHour = resourceData["producedAnHour"]
-            averageRetailPrice = resourceData["averageRetailPrice"]
-            marketSaturation = resourceData["marketSaturation"]
-            marketSaturationLabel = resourceData["marketSaturationLabel"]
-            retailModeling = resourceData["retailModeling"]
-            neededForString = ""
-            if "neededFor" in resourceData:
-                for item in resourceData["neededFor"]:
-                    if item["name"]:
-                        neededForString = neededForString + item["name"] + '-'
-            producedFromString = ""
-            if 'producedFrom' in resourceData:
-                # check if producedFrom list is empty
-                if len(resourceData["producedFrom"]) > 0:
-                    amountToPrint = len(resourceData["producedFrom"])
-                    x = 0
-                    for item in resourceData["producedFrom"]:
-                        if x < amountToPrint:
-                            producedFromString = producedFromString + resourceData["producedFrom"][x]["resource"]["name"] + "+"+str(resourceData["producedFrom"][x]["amount"])+"-"
-                            x = x + 1
-            producedAtString = ""
-            if 'producedAt' in resourceData:
-                producedAtString = producedAtString + resourceData["producedAt"]["name"]
-            neededFor = neededForString
-            producedFrom = producedFromString
-            producedAt = producedAtString
-            lowestMarketPrice = marketData[0]["price"]
-            newItem = Item(name, db_letter, transportation, retailable, research, realmAvailable, producedAnHour, averageRetailPrice, marketSaturation, marketSaturationLabel, retailModeling, neededFor, producedFrom, producedAt, lowestMarketPrice)
-            session.add(newItem)
-        if(i == 98): # 98
-            resourceData = getResourceData(i)
-            marketData = getMarketData(i)
-            name = resourceData["name"]
-            db_letter = resourceData["db_letter"]
-            transportation = resourceData["transportation"]
-            retailable = resourceData["retailable"]
-            research = resourceData["research"]
-            realmAvailable = resourceData["realmAvailable"]
-            producedAnHour = resourceData["producedAnHour"]
-            averageRetailPrice = resourceData["averageRetailPrice"]
-            marketSaturation = resourceData["marketSaturation"]
-            marketSaturationLabel = resourceData["marketSaturationLabel"]
-            retailModeling = resourceData["retailModeling"]
-            neededForString = ""
-            if "neededFor" in resourceData:
-                for item in resourceData["neededFor"]:
-                    if item["name"]:
-                        neededForString = neededForString + item["name"] + '-'
-            producedFromString = ""
-            if 'producedFrom' in resourceData:
-                # check if producedFrom list is empty
-                if len(resourceData["producedFrom"]) > 0:
-                    amountToPrint = len(resourceData["producedFrom"])
-                    x = 0
-                    for item in resourceData["producedFrom"]:
-                        if x < amountToPrint:
-                            producedFromString = producedFromString + resourceData["producedFrom"][x]["resource"]["name"] + "+"+str(resourceData["producedFrom"][x]["amount"])+"-"
-                            x = x + 1
-            producedAtString = ""
-            if 'producedAt' in resourceData:
-                producedAtString = producedAtString + resourceData["producedAt"]["name"]
-            neededFor = neededForString
-            producedFrom = producedFromString
-            producedAt = producedAtString
-            lowestMarketPrice = marketData[0]["price"]
-            newItem = Item(name, db_letter, transportation, retailable, research, realmAvailable, producedAnHour, averageRetailPrice, marketSaturation, marketSaturationLabel, retailModeling, neededFor, producedFrom, producedAt, lowestMarketPrice)
-            session.add(newItem)
-        if(i >= 100 and i <= 113): # 100 to 113
+        if(i <= 35 or (i >= 40 and i <= 89) or i == 98 or (i >= 100 and i <= 113)): # i cooresponds to itemnumber in simcompanies API
             resourceData = getResourceData(i)
             marketData = getMarketData(i)
             name = resourceData["name"]
@@ -223,7 +122,8 @@ def populateItemsTable():
             session.add(newItem)
         i = i+1
 
-
+def updateTable():
+    pass
 
 # query for all neededFor items
 def getNeededForItems(): #getting close

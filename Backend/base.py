@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import database_exists, create_database
@@ -45,8 +45,11 @@ The resulting table and mapper are accessible via __table__ and __mapper__ attri
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-#- generate database schema
-Base.metadata.create_all(engine)
+#- generate database schema 
+# (perhaps not needed if we put it inside the code
+#  to populate table, causing false positive as table
+#  always exists if this runs first)
+###Base.metadata.create_all(engine)
 
 
 
