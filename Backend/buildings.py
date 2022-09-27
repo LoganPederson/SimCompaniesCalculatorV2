@@ -1,5 +1,5 @@
 
-from sqlalchemy import ARRAY, Column, ForeignKey, String, Integer, Boolean
+from sqlalchemy import ARRAY, Column, ForeignKey, String, Integer, Boolean, inspect
 from base import Base, Session, engine
 import json, requests
 
@@ -33,12 +33,20 @@ class Building(Base):
         self.realmAvailable = realmAvailable
 
 
-Base.metadata.create_all(engine) # This method will issue queries that first check for the existence of each individual table, and if not found will issue the CREATE statements
 session = Session()
-
+inspector = inspect(engine)
 
 
 def populateBuildingsTable():
+    if(inspector.has_table('Buildings')):
+        print("Table Buildings exists!")
+        Building.__table__.drop(engine)
+        session.commit()
+        Base.metadata.create_all(engine)
+        print("Building table dropped, session commited, then schema recreated")
+    else:
+        print("No table named Building found, creating Schema")
+        Base.metadata.create_all(engine)
     url = "https://www.simcompanies.com/api/v3/0/buildings/1/"
     response = requests.get(url)
     buildingData = json.loads(response.text)
@@ -55,7 +63,7 @@ def populateBuildingsTable():
         realmAvailable = building['realmAvailable']
         building = Building(name, image, cost, costUnits, wages, secondsToBuild, category, kind, robotsNeeded, realmAvailable)
         session.add(building)
-        session.commit()
+        session.commit() # commit on each loop redundant because of add? 
 
 #print all columns of table Buildings
 def printAllBuildings():
