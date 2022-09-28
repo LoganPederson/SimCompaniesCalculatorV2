@@ -82,7 +82,8 @@ h1 {
   padding-top: 1%;
 }
 th, td {
-  border: 1px solid;
+  border: 2px solid;
+  border-color: black;
   padding: 5px;
   border-collapse: collapse;
 }
