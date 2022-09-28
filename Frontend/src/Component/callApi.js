@@ -15,8 +15,8 @@ const [DATA, setDATA] = useState({});
 const [buildingNameDropdownValue, setBuildingNameDropdownValue] = useState('Building Name');
 const [phaseDropDownValue, setPhaseDropDownValue] = useState('Normal');
 const [shown, setShown] = useState(true);
+const [cellValue, setCellValue] = useState('');
 const buildingNameDropdownOptions = ["Building Name", "Plantation","Water reservoir","Power plant","Oil rig","Refinery","Shipping depot","Farm","Beverage factory","Mine","Factory","Electronics factory","Fashion factory","Car factory","Plant research center","Physics laboratory","Breeding laboratory","Chemistry laboratory","Software R&D","Automotive R&D","Fashion & Design","Launch pad","Propulsion factory","Aerospace factory","Aerospace electronics","Vertical integration facility","Hangar","Quarry","Concrete plant","Construction factory"]
-
 const columns = useMemo(() => COLUMNS, []);
 const data = useMemo(() => { // Because our nested dictionary returned from fastAPI is an array of one element object, which contains more objects we need to transform this into an array using .map
   const rawData = DATA;
@@ -36,6 +36,10 @@ const tableInstance = useTable({
     data
 });
 
+const getCellValue = (cell) =>{
+  setCellValue(cell.value)
+  console.log('Cell value: '+cell)
+}
 const {
     getTableProps,
     getTableBodyProps,
@@ -90,10 +94,11 @@ const handleBuildingNameChange = (event) => {
 
 
 return(
+    <>
     <div id='mainDiv'>
         <p id='textBoxes'>
         <label>
-          <select onChange={handleBuildingNameChange}>
+          <select className='inputBox' onChange={handleBuildingNameChange}>
             {buildingNameDropdownOptions.map(buildingN => (
               <option key={buildingN} value={buildingN}>
                 {buildingN}
@@ -101,11 +106,11 @@ return(
             ))}
           </select>
         </label>
-        <input type="text" name="buildingLevel" id="buildingLevel" placeholder="Building Level ex: 3" onChange={e => setBuildingLevel(e.target.value)}></input>
-        <input type="text" name="productionModifier" id="productionModifier" placeholder="Production Modifier % ex: 1" onChange={e => setProductionModifier(e.target.value)}></input>
-        <input type="text" name="adminCost" id="adminCost" placeholder="Admin Cost % ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)}></input>
+        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Building Level ex: 3" onChange={e => setBuildingLevel(e.target.value)}></input>
+        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Production Modifier % ex: 1" onChange={e => setProductionModifier(e.target.value)}></input>
+        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="Admin Cost % ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)}></input>
         <label>
-          <select value={phaseDropDownValue} onChange={handlePhaseChange}>
+          <select className='inputBox' value={phaseDropDownValue} onChange={handlePhaseChange}>
             <option value="Booming">Booming</option>
             <option value="Recession">Recession</option>
             <option value="Normal">Normal</option>
@@ -118,7 +123,9 @@ return(
         <button type='button' id="getDBinfo" className='block' onClick={()=>whatIsSetShown()}>Print State of setShown</button>
         
         </p> 
-        {(shown && DATA) ?
+    </div>
+    <div id='tableDiv'>
+      {(shown && DATA) ?
           <table id='outputTable' {...getTableProps()}>
             <thead>
               {headerGroups.map((headerGroup) => (
@@ -135,7 +142,15 @@ return(
                 return (
                   <tr {...row.getRowProps()}>
                     {row.cells.map((cell) => {
-                      return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                      if(cell.value >= 0){
+                        return <td  {...cell.getCellProps()} style={{color:"green"}}> {cell.render("Cell")}</td>;
+                        }
+                      else if( cell.value < 0){
+                        return <td  {...cell.getCellProps()} style={{color:"red"}}> {cell.render("Cell")}</td>;
+                      }
+                      else{
+                        return <td  {...cell.getCellProps()}> {cell.render("Cell")}</td>;
+                      }
                     })}
                   </tr>
                 );
@@ -143,7 +158,8 @@ return(
             </tbody>
           </table>
           :null}
-    </div> 
+    </div>
+    </>
 
 ) 
 
