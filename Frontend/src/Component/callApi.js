@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { COLUMNS } from "./columns";
 import { useAsyncDebounce, useTable } from "react-table";
 import axios from 'axios'
-
+import MyImage from '../img/SimCompaniesCalculator_Logo.png'
 
 
 export const CallApi = () => {
 
-const [buildingName, setBuildingName] = useState('');
 const [buildingLevel, setBuildingLevel] = useState('');
 const [productionModifierPercentage, setProductionModifier] = useState('');
 const [adminCostPercentage, setAdminCostPercentage] = useState('');
@@ -15,7 +14,6 @@ const [DATA, setDATA] = useState({});
 const [buildingNameDropdownValue, setBuildingNameDropdownValue] = useState('Building Name');
 const [phaseDropDownValue, setPhaseDropDownValue] = useState('Normal');
 const [shown, setShown] = useState(true);
-const [cellValue, setCellValue] = useState('');
 const buildingNameDropdownOptions = ["Building Name", "Plantation","Water reservoir","Power plant","Oil rig","Refinery","Shipping depot","Farm","Beverage factory","Mine","Factory","Electronics factory","Fashion factory","Car factory","Plant research center","Physics laboratory","Breeding laboratory","Chemistry laboratory","Software R&D","Automotive R&D","Fashion & Design","Launch pad","Propulsion factory","Aerospace factory","Aerospace electronics","Vertical integration facility","Hangar","Quarry","Concrete plant","Construction factory"]
 const columns = useMemo(() => COLUMNS, []);
 const data = useMemo(() => { // Because our nested dictionary returned from fastAPI is an array of one element object, which contains more objects we need to transform this into an array using .map
@@ -36,10 +34,6 @@ const tableInstance = useTable({
     data
 });
 
-const getCellValue = (cell) =>{
-  setCellValue(cell.value)
-  console.log('Cell value: '+cell)
-}
 const {
     getTableProps,
     getTableBodyProps,
@@ -96,6 +90,9 @@ const handleBuildingNameChange = (event) => {
 return(
     <>
     <div id='mainDiv'>
+        <div id='logoDiv'>
+          <img id='logoImg' src={MyImage}></img>
+        </div>
         <p id='textBoxes'>
         <label>
           <select className='inputBox' onChange={handleBuildingNameChange}>
@@ -106,9 +103,9 @@ return(
             ))}
           </select>
         </label>
-        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Building Level ex: 3" onChange={e => setBuildingLevel(e.target.value)}></input>
-        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Production Modifier % ex: 1" onChange={e => setProductionModifier(e.target.value)}></input>
-        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="Admin Cost % ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)}></input>
+        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Lvl ex: 3" onChange={e => setBuildingLevel(e.target.value)}></input>
+        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Modifier% ex: 1" onChange={e => setProductionModifier(e.target.value)}></input>
+        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="AdminCost% ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)}></input>
         <label>
           <select className='inputBox' value={phaseDropDownValue} onChange={handlePhaseChange}>
             <option value="Booming">Booming</option>
@@ -119,9 +116,7 @@ return(
         </label>
         </p>
         <p id='Button'>
-        <button type='button' id="getDBinfo" className='block' onClick={()=>HandleClick()}>Get DB Info</button>
-        <button type='button' id="getDBinfo" className='block' onClick={()=>whatIsSetShown()}>Print State of setShown</button>
-        
+        <button type='button' id="getDBinfo" className='block' onClick={()=>HandleClick()}>Get DB Info</button> 
         </p> 
     </div>
     <div id='tableDiv'>
