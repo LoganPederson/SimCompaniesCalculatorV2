@@ -12,9 +12,11 @@ const [buildingLevel, setBuildingLevel] = useState('');
 const [productionModifierPercentage, setProductionModifier] = useState('');
 const [adminCostPercentage, setAdminCostPercentage] = useState('');
 const [DATA, setDATA] = useState({});
-const [dropDownValue, setDropDownValue] = useState('Normal');
+const [buildingNameDropdownValue, setBuildingNameDropdownValue] = useState('Building Name');
+const [phaseDropDownValue, setPhaseDropDownValue] = useState('Normal');
 const [shown, setShown] = useState(true);
-
+const [cellValue, setCellValue] = useState('');
+const buildingNameDropdownOptions = ["Building Name", "Plantation","Water reservoir","Power plant","Oil rig","Refinery","Shipping depot","Farm","Beverage factory","Mine","Factory","Electronics factory","Fashion factory","Car factory","Plant research center","Physics laboratory","Breeding laboratory","Chemistry laboratory","Software R&D","Automotive R&D","Fashion & Design","Launch pad","Propulsion factory","Aerospace factory","Aerospace electronics","Vertical integration facility","Hangar","Quarry","Concrete plant","Construction factory"]
 const columns = useMemo(() => COLUMNS, []);
 const data = useMemo(() => { // Because our nested dictionary returned from fastAPI is an array of one element object, which contains more objects we need to transform this into an array using .map
   const rawData = DATA;
@@ -34,6 +36,10 @@ const tableInstance = useTable({
     data
 });
 
+const getCellValue = (cell) =>{
+  setCellValue(cell.value)
+  console.log('Cell value: '+cell)
+}
 const {
     getTableProps,
     getTableBodyProps,
@@ -44,8 +50,8 @@ const {
 
 const populateTable = async () => {
     try{
-        let encodedName = encodeURI(buildingName)
-        let targetURI = `3.132.177.230/api/calculateProfitPerHourOf{}?buildingName=${encodedName}&buildingLevel=${buildingLevel}&productionModifierPercentage=${productionModifierPercentage}&administrationCostPercentage=${adminCostPercentage}&phase=${dropDownValue}`
+        let encodedName = encodeURI(buildingNameDropdownValue)
+        let targetURI = `http://127.0.0.1:8000/api/calculateProfitPerHourOf{}?buildingName=${encodedName}&buildingLevel=${buildingLevel}&productionModifierPercentage=${productionModifierPercentage}&administrationCostPercentage=${adminCostPercentage}&phase=${phaseDropDownValue}`
         let res = await axios.get(targetURI);
         let arr = res.data;
         console.log('arr = '+arr)
@@ -77,22 +83,34 @@ const whatIsSetShown = async () => {
   console.log('DATA = '+DATA)
   console.log('DATA stringified = '+JSON.stringify(DATA))
 }
-const handleChange = (event) => {
-  setDropDownValue(event.target.value)
+const handlePhaseChange = (event) => {
+  setPhaseDropDownValue(event.target.value)
+}
+const handleBuildingNameChange = (event) => {
+  setBuildingNameDropdownValue(event.target.value)
 }
 
 
 
 
 return(
+    <>
     <div id='mainDiv'>
         <p id='textBoxes'>
-        <input type="text" name="buildingName" id="buildingName" placeholder="Building Name" onChange={e => setBuildingName(e.target.value)}></input>
-        <input type="text" name="buildingLevel" id="buildingLevel" placeholder="Building Level" onChange={e => setBuildingLevel(e.target.value)}></input>
-        <input type="text" name="productionModifier" id="productionModifier" placeholder="Production Modifier %" onChange={e => setProductionModifier(e.target.value)}></input>
-        <input type="text" name="adminCost" id="adminCost" placeholder="Administration Cost %" onChange={e => setAdminCostPercentage(e.target.value)}></input>
         <label>
-          <select value={dropDownValue} onChange={handleChange}>
+          <select className='inputBox' onChange={handleBuildingNameChange}>
+            {buildingNameDropdownOptions.map(buildingN => (
+              <option key={buildingN} value={buildingN}>
+                {buildingN}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Building Level ex: 3" onChange={e => setBuildingLevel(e.target.value)}></input>
+        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Production Modifier % ex: 1" onChange={e => setProductionModifier(e.target.value)}></input>
+        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="Admin Cost % ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)}></input>
+        <label>
+          <select className='inputBox' value={phaseDropDownValue} onChange={handlePhaseChange}>
             <option value="Booming">Booming</option>
             <option value="Recession">Recession</option>
             <option value="Normal">Normal</option>
@@ -105,7 +123,9 @@ return(
         <button type='button' id="getDBinfo" className='block' onClick={()=>whatIsSetShown()}>Print State of setShown</button>
         
         </p> 
-        {(shown && DATA) ?
+    </div>
+    <div id='tableDiv'>
+      {(shown && DATA) ?
           <table id='outputTable' {...getTableProps()}>
             <thead>
               {headerGroups.map((headerGroup) => (
@@ -122,7 +142,15 @@ return(
                 return (
                   <tr {...row.getRowProps()}>
                     {row.cells.map((cell) => {
-                      return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                      if(cell.value >= 0){
+                        return <td  {...cell.getCellProps()} style={{color:"green"}}> {cell.render("Cell")}</td>;
+                        }
+                      else if( cell.value < 0){
+                        return <td  {...cell.getCellProps()} style={{color:"red"}}> {cell.render("Cell")}</td>;
+                      }
+                      else{
+                        return <td  {...cell.getCellProps()}> {cell.render("Cell")}</td>;
+                      }
                     })}
                   </tr>
                 );
@@ -130,7 +158,8 @@ return(
             </tbody>
           </table>
           :null}
-    </div> 
+    </div>
+    </>
 
 ) 
 
