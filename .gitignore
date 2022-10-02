@@ -15,5 +15,6 @@
 /pyvenv.cfg
 /reactCreate.py
 /node_modules
+/Notes
 # SSH
 /sshLogin.pem

@@ -1,0 +1,41 @@
+6/h
+wages 1207/h
+sell for 316/unit selling 
+1% increase production speed?
+
+
+6*316=1896 - 1207 wages = 689 profit / hour without 3% fee accounted nor 1% speed increase 
+
+6.471*316=2044.84 - 1207wages = 837.84 profit/h without admin/3%/1%speed bonus
+
+admin cost=2.94% + 3% selling fee = 5.94% fee
+
+837.84*.0594=49.76769
+788.07/h all accounted for except 1% speed 
+
+        location / {
+                # First attempt to serve request as file
+                proxy_pass http://localhost:3000;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgradE;
+        }
+
+
+Elastic ip: 3.132.177.230
+
+
+Not Working:
+-Farm (Cows returning None marketprice)
+-Car factory (On Board Computer having issue, think it may have a + in the name which I use for seperater character - perhaps change what seperator I use)
+-Software R&D (Produces Software but notsure why returning nothing)
+-Automotive R&D (Produces Automotive research but notsure why returning nothing)
+-Fasion & Design (Returning 200 but nothing runs? same as above 2)
+-Launch pad (Produces Aerospace research which is returning None from currentMarketPrice causing error when multiplying by float resource amount needed, sub orbital rocket required has error in name spacing, returning 'sub' 'orbital rocket+1' 'BFR+1')
+-Propulsion factory (Name seperator erroring)
+-Aerospace electronics (Flight computer erroring same as above)
+-Vertical Integration Facility (returning 200 but empty)
+-Hangar (returning 200 but empty)
+
