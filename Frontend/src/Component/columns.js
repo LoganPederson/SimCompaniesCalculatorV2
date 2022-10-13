@@ -5,6 +5,6 @@ export const COLUMNS = [
     },
     {
       Header: "Profit Per Hour",
-      accessor: "profitPerHour",
+      accessor: "profit_per_hour",
     }
   ];
