@@ -4,32 +4,21 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import database_exists, create_database
 from local_settings import postgresql as settings
 
-
-def getEngine(user, passwd, host, port, db):
+# Connect to existing AWS Postgres database.
+def get_engine(user, passwd, host, port, db):
     url = f"postgresql+psycopg2://{user}:{passwd}@{host}:{port}/{db}"
     if not database_exists(url):
         print("database does not exist?!!")
         create_database(url)
-    engine = create_engine(url, pool_size=50, echo=False) # Change echo for more or less printout I assume
+    engine = create_engine(url, pool_size=50, echo=False) # echo=True for verbose
     return engine
 
-
-    
-#engine = create_engine('sqlalchemy:///simcompaniescalculator.c4w8wmvikrna.us-east-2.rds.amazonaws.com', echo=True, future=True)
-
-engine = getEngine(
+engine = get_engine(
     settings['pguser'],
     settings['pgpasswd'],
     settings['pghost'],
     settings['pgport'],
     settings['pgdb'])
-
-# print(
-#     settings['pguser'],
-#     settings['pgpasswd'],
-#     settings['pghost'],
-#     settings['pgport'],
-#     settings['pgdb'])
 
 Session = sessionmaker(bind=engine) 
 Base = declarative_base() 
@@ -41,24 +30,9 @@ The resulting table and mapper are accessible via __table__ and __mapper__ attri
 '''
 
 
-#FastAPI requires this 
+# Each instance of the SessionLocal class will be a database session.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
-#- generate database schema 
-# (perhaps not needed if we put it inside the code
-#  to populate table, causing false positive as table
-#  always exists if this runs first)
-###Base.metadata.create_all(engine)
-
-
-
-
-# #- create a new session
-# session = Session()
-
-# #delete table items
-# session.execute(text("DROP TABLE Items"))
 
 
    

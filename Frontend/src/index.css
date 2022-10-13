@@ -61,6 +61,17 @@ h1 {
   width:15%;
 }
 
+.tooltip{
+  position: relative;
+  margin:auto;
+  text-align: center;
+  color:yellow;
+  font-size: medium;
+
+}
+
+
+
 #mainDiv{
   text-align: center;
   width: 100%;

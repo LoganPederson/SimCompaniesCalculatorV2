@@ -1,10 +1,9 @@
-
-from sqlalchemy import ARRAY, Column, ForeignKey, String, Integer, Boolean, inspect
+from sqlalchemy import Column, String, Integer, Boolean, inspect
 from base import Base, Session, engine
 import json, requests
 
 
-#- Building class for each building with properties within
+#- Building class for sqlalchemy Object Relational Mapper (ORM) to translate into postgres database Table. 
 class Building(Base):
 
     __tablename__ = 'Buildings'
@@ -32,25 +31,32 @@ class Building(Base):
         self.robotsNeeded = robotsNeeded
         self.realmAvailable = realmAvailable
 
-
 session = Session()
 inspector = inspect(engine)
 
+'''
+pouplateBuildingTable acts as both Create & Update in CRUD, 
+the table data should be static unless SimCompanies updates the vales.
 
-def populateBuildingsTable():
+inspector checks to see if table exists, if it does the table is deleted.
+A new Table is created and populated by calling the SimCompanies API for current data. 
+'''
+def populate_buildings_table():
+
     if(inspector.has_table('Buildings')):
-        print("Table Buildings exists!")
+        print("Table Buildings already exists!")
         Building.__table__.drop(engine)
         session.commit()
         Base.metadata.create_all(engine)
-        print("Building table dropped, session commited, then schema recreated")
+        print("Buildings table dropped, session commited, then schema recreated.")
     else:
-        print("No table named Building found, creating Schema")
+        print("No table named Buildings found, creating schema.")
         Base.metadata.create_all(engine)
+
     url = "https://www.simcompanies.com/api/v3/0/buildings/1/"
     response = requests.get(url)
-    buildingData = json.loads(response.text)
-    for building in buildingData:
+    building_data = json.loads(response.text)
+    for building in building_data:
         name = building['name']
         image = building['image']
         cost = building['cost']
@@ -63,18 +69,8 @@ def populateBuildingsTable():
         realmAvailable = building['realmAvailable']
         building = Building(name, image, cost, costUnits, wages, secondsToBuild, category, kind, robotsNeeded, realmAvailable)
         session.add(building)
-        session.commit() # commit on each loop redundant because of add? 
+        session.commit()
 
-#print all columns of table Buildings
-def printAllBuildings():
-    for building in session.query(Building.production).all():
-        print(building)
+#populate_buildings_table()
 
-def printAllBuildingNames():
-    for building in session.query(Building).all():
-        print(building.name)
-
-
-
-#populateBuildingsTable()
-#printAllBuildingNames()
+session.close()

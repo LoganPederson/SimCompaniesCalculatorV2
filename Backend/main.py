@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.responses import HTMLResponse
-import schemas, items, base, buildings
+import items, buildings, schemas, base
 from base import SessionLocal, engine
 from sqlalchemy.orm import Session
-from items import getItem, getLowestMarketPrice, getMarketData, getNeededForItems, getProducedAtItems, getProducedFromItems, getResourceData, splitProducedFromString, Item
-from time import sleep
+from items import get_lowest_market_price, split_produced_from_string, Item
 from recessionAndBoom import recession, boom
 items.Base.metadata.create_all(bind=engine)
 
@@ -13,7 +12,7 @@ items.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-origins = ['http://localhost:3000']
+origins = ['http://localhost:3000','http://simcompaniescalculator.com','https://simcompaniescalculator.com']
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +21,7 @@ app.add_middleware(
     allow_methods = ["GET"],
     allow_headers = ["*"]
 )
-
+# create database instance with SessionLocal()
 def get_db():
     db = SessionLocal()
     try:
@@ -31,147 +30,65 @@ def get_db():
         db.close()
 
 
-
-
-
-@app.get("/") #empty route
+@app.get("/") # Test route
 def read_root():
     return {"Ping":"Pong"}
+    
 
-
-@app.get("/api/All_Items")
-def getAllItems(db: Session = Depends(get_db)):
-    holder = db.query(items.Item).all()
-    return holder # return all items and all data associated with them
-
-@app.get("/api/Items/{item_name}") # Return all item data from given string, looks like 
-def getThisItem(item_name:str, db: Session = Depends(get_db)):
-    holder = db.query(items.Item).all()
-    for item in holder:
-        if item.name == str(item_name):
-            return item
-
-
-@app.get("/api/calculateProfitPerHourOf{}")
-def calculateProfitPerHourPerItem(buildingName:str, buildingLevel:int, productionModifierPercentage:float, administrationCostPercentage:float, phase:str,db:Session = Depends(get_db)):
-    allItems = db.query(items.Item).all()
-    buildingsTable = db.query(buildings.Building).all()
+@app.get("/api/calculate_profit_per_hour{}")
+def calculate_profit_per_hour(buildingName:str, buildingLevel:int, productionModifierPercentage:float, administrationCostPercentage:float, phase:str,db:Session = Depends(get_db)):
+    all_items = db.query(items.Item).all()
+    buildings_table = db.query(buildings.Building).all()
     id = 1
-    profitDict2= {
-    }
-    if phase == 'Normal':
-        for item in allItems: 
-            if item.producedAt == buildingName:
-                print('Item to produce: '+item.name)
-                producedFromStringList = splitProducedFromString(item.name) # passes item.name to function that will split the items producedFrom property by "-" ex: ['seeds+4','water+1']
-                print(item.name+' is produced from [resource+quantity]= '+str(producedFromStringList))
-                totalResourceSourcingCost = 0
-                print('Current total resource sourcing cost: 0'+"\n")
-                for listItem in producedFromStringList: # ex: [seeds+1,water+4] resourceName+amountNeeded
-                    if listItem != "": # gets rid of the empty string which all lists contain
-                        resourceNameAndAmount = listItem.split("+") # ex: [seeds, 1] [water, 4]
-                        resourceName = resourceNameAndAmount[0]
-                        resourceAmountNeeded = resourceNameAndAmount[1]
-                        print("resourceName: "+resourceName)
-                        print("amount needed: "+str(resourceAmountNeeded))
-                        resourceLowestMarketPrice = getLowestMarketPrice(resourceName)
-                        print("lowest market price found for 1 unit of "+resourceName+": " + str(resourceLowestMarketPrice))
-                        marketCostOfSourcingResource = resourceLowestMarketPrice * float(resourceAmountNeeded) 
-                        print("Cost of sourcing "+str(resourceAmountNeeded)+" of resource "+resourceName+" at market cost of "+str(resourceLowestMarketPrice)+" = "+str(marketCostOfSourcingResource))
-                        totalResourceSourcingCost = totalResourceSourcingCost + marketCostOfSourcingResource
-                        print('Current total resource sourcing cost: '+str(totalResourceSourcingCost)+"\n\n")
-                #if totalResourceSourcingCost == 0:
-                print("costPerHour to source all resources needed to produce "+str(item.producedAnHour*buildingLevel)+" units of "+ item.name + " = " + str(totalResourceSourcingCost*(item.producedAnHour*buildingLevel))+"\n\n\n")
-                # get wages from building and use sourcing cost to find profit per item
-                for building in buildingsTable:
-                    if building.name == buildingName:
-                        print("Production Building: "+building.name)
-                        print("Building Wages: "+str(building.wages*buildingLevel))
-                        productionCosts = (((totalResourceSourcingCost*(item.producedAnHour*buildingLevel)) + (building.wages * buildingLevel)) + ((building.wages*buildingLevel)*administrationCostPercentage))
-                        print("Sourcing Costs "+str(totalResourceSourcingCost*(item.producedAnHour*buildingLevel))+" + Total Wages/h "+str(building.wages*buildingLevel)+" accouting for Admin Overhead of "+str(administrationCostPercentage)+" = "+ str(productionCosts))
-                        print("Items Produced An Hour: "+str(item.producedAnHour*buildingLevel))
-                        lowestMarketPrice = getLowestMarketPrice(item.name)
-                        transportationMarketPrice = getLowestMarketPrice('Transport')
-                        transportCost = ((item.transportation * transportationMarketPrice) * (item.producedAnHour*buildingLevel))
-                        accountingFor3 = lowestMarketPrice*(item.producedAnHour*buildingLevel)- ((lowestMarketPrice*(item.producedAnHour*buildingLevel)*0.03))
-                        profitPerHour = (accountingFor3 -(productionCosts+transportCost))
-                        print("(Lowest Market Price Of One "+item.name+' = '+str(lowestMarketPrice)+" * "+item.name+" produced an hour: "+str(item.producedAnHour*buildingLevel)+"= "+str(lowestMarketPrice*(item.producedAnHour*buildingLevel))+" - 3 percent fee: "+str((lowestMarketPrice*(item.producedAnHour*buildingLevel)*0.03))+" = "+str(accountingFor3)+ "- productionCosts+transportCost: "+str(productionCosts)+" "+str(transportCost)+"("+str(productionCosts+transportCost)+") = "+str(profitPerHour))
-                        print("")
-                        profitDict2[id] = {'itemName':item.name, 'profitPerHour':profitPerHour}
-                        print("Adding to profitDict2: "+str(profitDict2[id])+"\n")
-                        id = id + 1
-                        break
-        return profitDict2 #currently one indent in too far, only returning on the first loop through. However when one indent back it's returning an empty array as jsx cannot render an object with multiple properties*?, need to convert to array or some other datastructure Ig 
-    elif phase == 'Recession':
-        for item in allItems: 
-            if item.producedAt == buildingName:
-                print(item.name)
-                producedFromStringList = splitProducedFromString(item.name) # passes item.name to function that will split the items producedFrom property by "-" ex: ['seeds+4','water+1']
-                print('producedFromStringList = '+str(producedFromStringList))
-                totalResourceSourcingCost = 0
-                for listItem in producedFromStringList: # ex: [seeds+1,water+4] resourceName+amountNeeded
-                    if listItem != "": # gets rid of the empty string which all lists contain
-                        resourceNameAndAmount = listItem.split("+") # ex: [seeds, 1] [water, 4]
-                        resourceName = resourceNameAndAmount[0]
-                        resourceAmountNeeded = resourceNameAndAmount[1]
-                        print("resourceName: "+resourceName)
-                        print("amount needed: "+str(resourceAmountNeeded))
-                        print("lowest market price found: " + str(getLowestMarketPrice(resourceName)))
-                        lowestMarketPrice = (float(getLowestMarketPrice(resourceName))+(float(getLowestMarketPrice(resourceName))*0.03))
-                        print("Lowest Market Price Accounting For 3 Fee: "+str(lowestMarketPrice))
-                        marketCostOfSourcingResource = lowestMarketPrice * float(resourceAmountNeeded) # lowest market price * amount needed to produce item = total sourcing cost from market of this resource for producing 1 unit of item, including 3% market fee on purchase (haven't factored in transportaiton)
-                        totalResourceSourcingCost = totalResourceSourcingCost + marketCostOfSourcingResource
-                #if totalResourceSourcingCost == 0:
-                print("costPerHour to source all resources needed to produce "+str(item.producedAnHour*buildingLevel)+" units of "+ item.name + " = " + str(totalResourceSourcingCost))
-                # get wages from building and use sourcing cost to find profit per item
-                for building in buildingsTable:
-                    if building.name == buildingName:
-                        adjustedWages = building.wages - (building.wages * recession[building.name])
-                        print("FOUND: "+building.name)
-                        print("BUILDING WAGES: "+str(adjustedWages*buildingLevel))
-                        productionCosts = ((totalResourceSourcingCost + (adjustedWages * buildingLevel)) + ((adjustedWages*buildingLevel)*administrationCostPercentage))
-                        print("Production Cost of Sourcing AND Wages AND Admin Overhead Percentage: "+str(productionCosts))
-                        print("Items Produced An Hour: "+str(item.producedAnHour*buildingLevel))
-                        profitPerHour = (getLowestMarketPrice(item.name)*(item.producedAnHour*buildingLevel)) - productionCosts
-                        profitDict2[id] = {'itemName':item.name, 'profitPerHour':profitPerHour}
-                        id = id + 1
-                        print("profitDict2 "+str(profitDict2))
-                        break
-        return profitDict2 #currently one indent in too far, only returning on the first loop through. However when one indent back it's returning an empty array as jsx cannot render an object with multiple properties*?, need to convert to array or some other datastructure Ig 
-    else:
-        for item in allItems: 
-            if item.producedAt == buildingName:
-                print(item.name)
-                producedFromStringList = splitProducedFromString(item.name) # passes item.name to function that will split the items producedFrom property by "-" ex: ['seeds+4','water+1']
-                print('producedFromStringList = '+str(producedFromStringList))
-                totalResourceSourcingCost = 0
-                for listItem in producedFromStringList: # ex: [seeds+1,water+4] resourceName+amountNeeded
-                    if listItem != "": # gets rid of the empty string which all lists contain
-                        resourceNameAndAmount = listItem.split("+") # ex: [seeds, 1] [water, 4]
-                        resourceName = resourceNameAndAmount[0]
-                        resourceAmountNeeded = resourceNameAndAmount[1]
-                        print("resourceName: "+resourceName)
-                        print("amount needed: "+str(resourceAmountNeeded))
-                        print("lowest market price found: " + str(getLowestMarketPrice(resourceName)))
-                        lowestMarketPrice = (float(getLowestMarketPrice(resourceName))+(float(getLowestMarketPrice(resourceName))*0.03))
-                        print("Lowest Market Price Accounting For 3 Fee: "+str(lowestMarketPrice))
-                        marketCostOfSourcingResource = lowestMarketPrice * float(resourceAmountNeeded) # lowest market price * amount needed to produce item = total sourcing cost from market of this resource for producing 1 unit of item, including 3% market fee on purchase (haven't factored in transportaiton)
-                        totalResourceSourcingCost = totalResourceSourcingCost + marketCostOfSourcingResource
-                #if totalResourceSourcingCost == 0:
-                print("costPerHour to source all resources needed to produce "+str(item.producedAnHour*buildingLevel)+" units of "+ item.name + " = " + str(totalResourceSourcingCost))
-                # get wages from building and use sourcing cost to find profit per item
-                for building in buildingsTable:
-                    if building.name == buildingName:
-                        adjustedWages = building.wages + (building.wages * recession[building.name])
-                        print("FOUND: "+building.name)
-                        print("Why am I running 3x?")
-                        print("BUILDING WAGES: "+str(adjustedWages*buildingLevel))
-                        productionCosts = ((totalResourceSourcingCost + (adjustedWages * buildingLevel)) + ((adjustedWages*buildingLevel)*administrationCostPercentage))
-                        print("Production Cost of Sourcing AND Wages AND Admin Overhead Percentage: "+str(productionCosts))
-                        print("Items Produced An Hour: "+str(item.producedAnHour*buildingLevel))
-                        profitPerHour = (getLowestMarketPrice(item.name)*(item.producedAnHour*buildingLevel)) - productionCosts
-                        profitDict2[id] = {'itemName':item.name, 'profitPerHour':profitPerHour}
-                        id = id + 1
-                        print("profitDict2 "+str(profitDict2))
-                        break
-        return profitDict2 
+    profit_dictionary= {}
+    for item in all_items: 
+        if item.producedAt == buildingName:
+            print('Item to produce: '+item.name)
+            produced_from_string_list = split_produced_from_string(item.name) # Splits the item.producedFrom property by "-" ex: ['seeds+4','water+1']
+            total_resource_sourcing_cost = 0
+            produced_per_hour = item.producedAnHour+(item.producedAnHour*productionModifierPercentage)
+            print(item.name+' is produced from [resource+quantity]= '+str(produced_from_string_list))
+            print('Current total resource sourcing cost: 0'+"\n")
+            for list_item in produced_from_string_list: # ex: [seeds+1,water+4] resource_name+amountNeeded
+                if list_item != "": # gets rid of the empty string which all lists contain
+                    resource_name_and_amount = list_item.split("+") # ex: [seeds, 1] [water, 4]
+                    resource_name = resource_name_and_amount[0]
+                    resource_amount_needed = resource_name_and_amount[1]
+                    print("resource_name: "+resource_name)
+                    print("amount needed: "+str(resource_amount_needed))
+                    resource_lowest_market_price = get_lowest_market_price(resource_name)
+                    print("lowest market price found for 1 unit of "+resource_name+": " + str(resource_lowest_market_price))
+                    market_cost_of_sourcing_resource = resource_lowest_market_price * float(resource_amount_needed) 
+                    print("Cost of sourcing "+str(resource_amount_needed)+" of resource "+resource_name+" at market cost of "+str(resource_lowest_market_price)+" = "+str(market_cost_of_sourcing_resource))
+                    total_resource_sourcing_cost = total_resource_sourcing_cost + market_cost_of_sourcing_resource
+                    print('Current total resource sourcing cost: '+str(total_resource_sourcing_cost)+"\n\n")
+            #if total_resource_sourcing_cost == 0:
+            print("costPerHour to source all resources needed to produce "+str(produced_per_hour*buildingLevel)+" units of "+ item.name + " = " + str(total_resource_sourcing_cost*(produced_per_hour*buildingLevel))+"\n\n\n")
+            # get wages from building and use sourcing cost to find profit per item
+            for building in buildings_table:
+                if building.name == buildingName:
+                    if phase == 'Recession':
+                        building_wages = building.wages-(building.wages*recession[building.name])
+                    elif phase == 'Booming':
+                        building_wages = building.wages+(building.wages*boom[building.name])
+                    else:
+                        building_wages = building.wages
+
+                    print("Production Building: "+building.name)
+                    print("Building Wages: "+str(building_wages*buildingLevel))
+                    production_costs = (((total_resource_sourcing_cost*(produced_per_hour*buildingLevel)) + (building_wages * buildingLevel)) + ((building_wages*buildingLevel)*administrationCostPercentage))
+                    print("Sourcing Costs "+str(total_resource_sourcing_cost*(produced_per_hour*buildingLevel))+" + Total Wages/h "+str(building_wages*buildingLevel)+" accouting for Admin Overhead of "+str(administrationCostPercentage)+" = "+ str(production_costs))
+                    print("Items Produced An Hour: "+str(produced_per_hour*buildingLevel))
+                    lowest_market_price = get_lowest_market_price(item.name)
+                    transportation_market_price = get_lowest_market_price('Transport')
+                    trasnportation_cost = ((item.transportation * transportation_market_price) * (produced_per_hour*buildingLevel))
+                    accounting_for_three = lowest_market_price*(produced_per_hour*buildingLevel)- ((lowest_market_price*(produced_per_hour*buildingLevel)*0.03))
+                    profit_per_hour = (accounting_for_three -(production_costs+trasnportation_cost))
+                    print("(Lowest Market Price Of One "+item.name+' = '+str(lowest_market_price)+" * "+item.name+" produced an hour: "+str(produced_per_hour*buildingLevel)+"= "+str(lowest_market_price*(produced_per_hour*buildingLevel))+" - 3 percent fee: "+str((lowest_market_price*(produced_per_hour*buildingLevel)*0.03))+" = "+str(accounting_for_three)+ "- production_costs+trasnportation_cost: "+str(production_costs)+" "+str(trasnportation_cost)+"("+str(production_costs+trasnportation_cost)+") = "+str(profit_per_hour))
+                    print("")
+                    profit_dictionary[id] = {'itemName':item.name, 'profit_per_hour':profit_per_hour}
+                    print("Adding to profit_dictionary: "+str(profit_dictionary[id])+"\n")
+                    id = id + 1
+                    break
+    db.close()
+    return profit_dictionary  
