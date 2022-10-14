@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import ReactTooltip from 'react-tooltip';
 import { COLUMNS } from "./columns";
 import { useTable } from "react-table";
 import axios from 'axios'
@@ -14,9 +15,6 @@ const [DATA, setDATA] = useState({});
 const [buildingNameDropdownValue, setBuildingNameDropdownValue] = useState('Building Name');
 const [phaseDropDownValue, setPhaseDropDownValue] = useState('Normal');
 const [shown, setShown] = useState(false);
-const [showBuildingLevelTooltip, setBuildingLevelTooltip] = useState(false);
-const [showProductionModifierTooltip, setProductionModifierTooltip] = useState(false);
-const [showAdminCostTooltip, setAdminCostTooltip] = useState(false);
 const buildingNameDropdownOptions = ["Building Name", "Plantation","Water reservoir","Power plant","Oil rig","Refinery","Shipping depot","Farm","Beverage factory","Mine","Factory","Electronics factory","Fashion factory","Car factory","Plant research center","Physics laboratory","Breeding laboratory","Chemistry laboratory","Software R&D","Automotive R&D","Fashion & Design","Launch pad","Propulsion factory","Aerospace factory","Aerospace electronics","Vertical integration facility","Hangar","Quarry","Concrete plant","Construction factory"]
 const columns = useMemo(() => COLUMNS, []);
 const data = useMemo(() => { // Because our nested dictionary returned from fastAPI is an array of one element object, which contains more objects we need to transform this into an array using .map
@@ -57,22 +55,16 @@ const populateTable = async () => {
     }
 }
 
-
-
-const ToggleShown = () => {
-  setShown(!shown)
-}
-
 const HandleClick = () => {
   if (buildingNameDropdownValue === 'Building Name') {
     alert("Please Select A Building Name From The Dropdown!")}
-  else if (buildingLevel === ''){
+  else if (buildingLevel === '' || isNaN(buildingLevel)){
     alert("Please Enter A Valid Building Level!")
   }
-  else if (productionModifierPercentage === ''){
+  else if (productionModifierPercentage === '' || isNaN(productionModifierPercentage)){
     alert("Please Enter A Valid Production Modifier %!")
   }
-  else if (adminCostPercentage === ''){
+  else if (adminCostPercentage === '' || isNaN(adminCostPercentage)){
     alert("Please Enter A Valid Administration Cost %!")
   }
   else {      
@@ -90,15 +82,6 @@ const handleBuildingNameChange = (event) => {
   setBuildingNameDropdownValue(event.target.value)
 }
 
-const handleTooltipBlurBldg = () => {
-  setBuildingLevelTooltip(false)
-}
-const handleTooltipBlurModifier = () => {
-  setProductionModifierTooltip(false)
-}
-const handleTooltipBlurAdmin = () => {
-  setAdminCostTooltip(false)
-}
 
 
 
@@ -109,7 +92,7 @@ return(
           <img id='logoImg' src={MyImage} alt={'Logo!'}></img>
         </div>
         <p id='textBoxes'>
-        <label>
+        <label data-tip data-for='bldgNameTip'>
           <select className='inputBox' onChange={handleBuildingNameChange}>
             {buildingNameDropdownOptions.map(buildingN => (
               <option key={buildingN} value={buildingN}>
@@ -118,43 +101,27 @@ return(
             ))}
           </select>
         </label>
-        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Lvl ex: 3" onChange={e => setBuildingLevel(e.target.value)} onFocus={() => setBuildingLevelTooltip(true)} onBlur={() => handleTooltipBlurBldg()} ></input>
-        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Modifier% ex: 0.01" onChange={e => setProductionModifier(e.target.value)} onFocus={() => setProductionModifierTooltip(true)} onBlur={() => handleTooltipBlurModifier()}></input>
-        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="AdminCost% ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)} onFocus={() => setAdminCostTooltip(true)} onBlur={() => handleTooltipBlurAdmin()}></input>
-        <label>
+        <ReactTooltip id='bldgNameTip' place='top' effect='solid'>Select Building</ReactTooltip>
+        <input className='inputBox' type="text" name="buildingLevel" id="buildingLevel" placeholder="Lvl ex: 3" onChange={e => setBuildingLevel(e.target.value)} data-tip data-for='bldgLvlTip' ></input>
+        <ReactTooltip id='bldgLvlTip' place='top' effect='solid'>Enter Building Level - ex: 3</ReactTooltip>
+        <input className='inputBox' type="text" name="productionModifier" id="productionModifier" placeholder="Modifier% ex: 0.01" onChange={e => setProductionModifier(e.target.value)} data-tip data-for='prodTip' ></input>
+        <ReactTooltip id='prodTip' place='top' effect='solid'>Enter Production Modifier % In Decimal Form - ex: 0.01</ReactTooltip>
+        <input className='inputBox' type="text" name="adminCost" id="adminCost" placeholder="AdminCost% ex: 0.01" onChange={e => setAdminCostPercentage(e.target.value)} data-tip data-for='adminTip' ></input>
+        <ReactTooltip id='adminTip' place='top' effect='solid'>Enter Administration Cost Percentage In Decimal Form - ex: 0.02</ReactTooltip>
+        <label data-tip data-for='phaseTip'>
           <select className='inputBox' value={phaseDropDownValue} onChange={handlePhaseChange}>
             <option value="Booming">Booming</option>
             <option value="Recession">Recession</option>
             <option value="Normal">Normal</option>
-
           </select>
         </label>
+        <ReactTooltip id='phaseTip' place='top' effect='solid'>Select Economy Phase</ReactTooltip>
         </p>
         <p id='Button'>
         <button type='button' id="getDBinfo" className='block' onClick={()=>HandleClick()}>Get Profit Per Hour</button> 
         </p>
-          <div className='tooltip'>
-            {(showBuildingLevelTooltip) ?
-              <div>
-                Enter Building Level - ex: 3
-              </div>
-            : null}
-          </div>
-          <div className='tooltip'>
-            {(showProductionModifierTooltip) ?
-                <div>
-                  Enter Production Modifier % In Decimal Form - ex: 0.01  
-                </div>
-              : null}
-          </div>
-          <div className='tooltip'>
-            {(showAdminCostTooltip) ?
-                <div>
-                  Enter Administration Cost Percentage In Decimal Form - ex: 0.02
-                </div>
-              : null}
-          </div> 
     </div>
+
     <div id='tableDiv'>
       {(shown && DATA) ?
           <table id='outputTable' {...getTableProps()}>

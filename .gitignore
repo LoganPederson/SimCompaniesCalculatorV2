@@ -15,6 +15,7 @@
 /pyvenv.cfg
 /reactCreate.py
 /node_modules
-/Notes
+/Notes.txt
+/SimCompanies_API_Endpoint_Notes.txt
 # SSH
 /sshLogin.pem
