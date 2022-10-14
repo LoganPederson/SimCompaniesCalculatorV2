@@ -66,6 +66,7 @@ def calculate_profit_per_hour(buildingName:str, buildingLevel:int, productionMod
             print("costPerHour to source all resources needed to produce "+str(produced_per_hour*buildingLevel)+" units of "+ item.name + " = " + str(total_resource_sourcing_cost*(produced_per_hour*buildingLevel))+"\n\n\n")
             # get wages from building and use sourcing cost to find profit per item
             for building in buildings_table:
+                # Account for current economy phase Normal, Recession, or Booming.
                 if building.name == buildingName:
                     if phase == 'Recession':
                         building_wages = building.wages-(building.wages*recession[building.name])
@@ -73,7 +74,6 @@ def calculate_profit_per_hour(buildingName:str, buildingLevel:int, productionMod
                         building_wages = building.wages+(building.wages*boom[building.name])
                     else:
                         building_wages = building.wages
-
                     print("Production Building: "+building.name)
                     print("Building Wages: "+str(building_wages*buildingLevel))
                     production_costs = (((total_resource_sourcing_cost*(produced_per_hour*buildingLevel)) + (building_wages * buildingLevel)) + ((building_wages*buildingLevel)*administrationCostPercentage))
